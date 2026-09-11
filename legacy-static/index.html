@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FileFit — Resize photos, signatures and PDFs</title>
+  <meta name="description" content="Make your files fit. Resize a photo or signature, convert an image, or optimise a PDF in your browser. Free, with no sign-up.">
+  <meta name="theme-color" content="#165940">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23165940'/%3E%3Cpath d='M9 16V9h7M23 16v7h-7M12 16l3 3 6-7' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to file tools</a>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></symbol>
+<symbol id="i-sign" viewBox="0 0 24 24"><path d="M3 19c5-2 12-13 8-15-4-2-7 18 0 14 3-2 3-6 2-5-3 2-2 7 2 5l3-2 3 1M3 22h18"/></symbol>
+<symbol id="i-pdf" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 14h8M8 17h5"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+</defs></svg>
+<header class="header"><a class="brand" href="/" aria-label="FileFit home"><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 15V7h8M25 17v8h-8M10 16l4 4 8-10"/></svg></span>FileFit<span class="brand-dot">.</span></a><a class="help-link" href="#help">How it works <span aria-hidden="true">↗</span></a></header>
+<main id="main">
+  <section class="intro"><p class="eyebrow">LESS FUSS. FILES THAT FIT.</p><h1>The right file.<br class="mobile-break"> Ready in seconds.</h1><p>Make your photo, signature or PDF the size you need.</p></section>
+  <section class="workspace" aria-label="File preparation tool">
+    <aside class="tool-nav"><p class="section-label">WHAT DO YOU NEED?</p><div class="tool-list" role="group" aria-label="Choose a file tool">
+      <button type="button" class="tool active" data-tool="photo" aria-pressed="true"><span class="tool-icon"><svg><use href="#i-photo"/></svg></span><span><strong>Photo</strong><small>Resize or change format</small></span><span class="selected-mark" aria-hidden="true">✓</span></button>
+      <button type="button" class="tool" data-tool="signature" aria-pressed="false"><span class="tool-icon"><svg><use href="#i-sign"/></svg></span><span><strong>Signature</strong><small>Get it ready for a form</small></span><span class="selected-mark" aria-hidden="true">✓</span></button>
+      <button type="button" class="tool" data-tool="pdf" aria-pressed="false"><span class="tool-icon"><svg><use href="#i-pdf"/></svg></span><span><strong>PDF</strong><small>Try a smaller file</small></span><span class="selected-mark" aria-hidden="true">✓</span></button>
+    </div><div class="private-note"><svg><use href="#i-shield"/></svg><div><strong>Your files stay yours.</strong><p>Everything happens on your device. Files are never uploaded.</p></div></div></aside>
+    <div class="tool-body">
+      <ol class="steps" aria-label="Your progress"><li class="current" aria-current="step"><span>1</span> Choose file</li><li><span>2</span> Adjust size</li><li><span>3</span> Download</li></ol>
+      <div class="work-heading"><div><h2 id="tool-title">Let’s resize your photo.</h2><p id="tool-description">Start by choosing the photo you want to use.</p></div><span class="free-badge">100% free</span></div>
+      <div id="dropzone" class="dropzone">
+        <div class="upload-symbol"><svg><use href="#i-upload"/></svg></div>
+        <h3 id="upload-heading">Choose your photo</h3><p class="drop-instruction">or drag and drop it here</p>
+        <button id="choose" class="primary" type="button"><svg><use href="#i-upload"/></svg><span id="choose-label">Choose photo</span></button>
+        <p id="accepted" class="file-hint">JPG, PNG or WebP · Up to 25 MB</p>
+        <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+      </div>
+      <section id="editor" hidden aria-label="Adjust your file">
+        <div class="file-row"><div class="file-preview"><img id="preview" alt="Your selected image"><svg id="pdf-icon" hidden><use href="#i-pdf"/></svg></div><div class="file-info"><strong id="file-name"></strong><p id="file-meta"></p></div><button id="change-file" class="text-button" type="button">Change file</button></div>
+        <form id="settings">
+          <div id="image-settings"><fieldset class="size-options"><legend>How small does it need to be?</legend><p class="field-help">Choose the maximum file size allowed by your form.</p><div class="size-pills">
+            <label><input type="radio" name="size" value="20"><span>20 KB</span></label><label><input type="radio" name="size" value="50"><span>50 KB</span></label><label><input type="radio" name="size" value="100" checked><span>100 KB</span></label><label><input type="radio" name="size" value="200"><span>200 KB</span></label><label><input type="radio" name="size" value="custom"><span>Other size</span></label><label><input type="radio" name="size" value="none"><span>No limit</span></label>
+          </div><div id="custom-size-row" class="custom-row" hidden><label for="custom-size">Maximum size in KB</label><input id="custom-size" type="number" min="1" max="25000" value="150" inputmode="numeric"></div></fieldset>
+          <label id="trim-row" class="check-row" hidden><input id="trim" type="checkbox" checked> Remove empty white space around my signature</label>
+          <details id="more-options" class="more-options"><summary>Need exact dimensions or a different format?</summary><div class="advanced-grid"><label>Width (pixels)<input id="width" type="number" min="1" max="8000" inputmode="numeric" placeholder="Keep original"></label><label>Height (pixels)<input id="height" type="number" min="1" max="8000" inputmode="numeric" placeholder="Keep original"></label><label>Fit the image<select id="fit"><option value="contain">Keep the whole image</option><option value="cover">Crop from the centre</option></select></label><label>Save as<select id="format"><option value="image/jpeg">JPG — smaller file</option><option value="image/png">PNG — transparent background</option><option value="application/pdf">PDF — one image per page</option></select></label></div><p class="field-help">Leave dimensions blank to keep the proportions. With two dimensions, “Keep the whole image” adds space instead of cutting anything off.</p><p id="format-note" class="field-help" hidden></p></details>
+          </div>
+          <div id="pdf-settings" class="pdf-explanation" hidden><h3>Smaller, when possible. Same pages.</h3><p>We’ll optimise the PDF structure without reducing image quality. Some PDFs are already compact, so their size may stay the same.</p><p>Have a password-protected PDF? Save an unlocked copy first.</p></div>
+          <button id="process" class="primary process-button" type="submit"><span id="process-label">Make my photo fit</span><svg><use href="#i-arrow"/></svg></button>
+        </form>
+      </section>
+      <p id="status" class="status" role="status" aria-live="polite" hidden></p><p id="error" class="error" role="alert" hidden></p>
+      <section id="result" class="result" hidden tabindex="-1" aria-label="Your file is ready"><div class="success-heading"><span class="success-icon"><svg><use href="#i-check"/></svg></span><div><h3 id="result-title">Your file is ready.</h3><p id="result-meta"></p></div></div><p id="result-note"></p><a id="download" class="primary download-button"><svg><use href="#i-down"/></svg>Download file</a><button id="start-over" class="text-button" type="button">Choose another file</button></section>
+      <div class="tool-footer"><span><svg><use href="#i-check"/></svg>No sign-up</span><span><svg><use href="#i-check"/></svg>No watermarks</span><span><svg><use href="#i-shield"/></svg>Private by design</span></div>
+    </div>
+  </section>
+  <section id="help" class="how-section"><div class="how-heading"><p class="eyebrow">THAT’S ALL THERE IS TO IT</p><h2>Three steps. One less worry.</h2></div><div class="how-grid"><article><span>01</span><h3>Choose your file</h3><p>A photo, your signature, or a PDF. Pick it from your phone or computer.</p></article><article><span>02</span><h3>Tell us what fits</h3><p>Choose a file size. Add exact dimensions only if your form asks for them.</p></article><article><span>03</span><h3>Save it. You’re done.</h3><p>Download your new file. Your original stays exactly as it was.</p></article></div></section>
+  <section class="quick-help" aria-label="Common questions"><details><summary>Where do I find the right size?</summary><p>Look beside the upload button on the form you’re filling in. It may say “under 50 KB” or “200 × 230 pixels.” Choose that size here. FileFit checks the settings you enter; the organisation decides whether the image meets its other requirements.</p></details><details><summary>Will my photo still look clear?</summary><p>We keep as much detail as the file-size limit allows. Very small limits can soften an image. Always check your downloaded file before submitting it. For exact dimensions, open the extra options.</p></details><details><summary>Where is my downloaded file?</summary><p>Look in your device’s Downloads folder or your browser’s downloads list. On a phone, you may need to open the Files app. FileFit adds “-filefit” to the name so you can tell it apart from the original.</p></details></section>
+</main>
+<footer class="footer"><span class="footer-brand">FileFit.</span><span>A little help for your everyday files.</span><span>Free. Simple. Yours.</span></footer>
+<noscript><p class="error">Please enable JavaScript to resize files in your browser. Your files will stay on your device.</p></noscript>
+</body></html>
