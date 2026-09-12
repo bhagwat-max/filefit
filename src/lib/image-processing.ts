@@ -1,4 +1,4 @@
-export type ImageFormat = "image/jpeg" | "image/png";
+export type ImageFormat = "image/jpeg" | "image/png" | "image/webp";
 export type ImageFit = "contain" | "cover";
 
 export type ProcessImageOptions = {
@@ -15,7 +15,7 @@ export type ProcessedImage = {
   blob: Blob;
   width: number;
   height: number;
-  extension: "jpg" | "png";
+  extension: "jpg" | "png" | "webp";
   dimensionsReduced: boolean;
 };
 
@@ -178,6 +178,7 @@ export async function processImage(options: ProcessImageOptions): Promise<Proces
     if (!context) throw new Error("Your browser could not prepare this image.");
     context.clearRect(0, 0, width, height);
     if (options.format === "image/jpeg") {
+      // JPEG has no alpha channel, so flatten transparency onto white first.
       context.fillStyle = "#ffffff";
       context.fillRect(0, 0, width, height);
     }
@@ -193,7 +194,7 @@ export async function processImage(options: ProcessImageOptions): Promise<Proces
     blob = await encode(outputWidth, outputHeight, 0.94);
     if (!maxBytes || blob.size <= maxBytes) break;
 
-    if (options.format === "image/jpeg") {
+    if (options.format === "image/jpeg" || options.format === "image/webp") {
       const lowest = await encode(outputWidth, outputHeight, 0.08);
       if (lowest.size <= maxBytes) {
         let best = lowest;
@@ -242,7 +243,8 @@ export async function processImage(options: ProcessImageOptions): Promise<Proces
     blob,
     width: outputWidth,
     height: outputHeight,
-    extension: options.format === "image/png" ? "png" : "jpg",
+    extension:
+      options.format === "image/png" ? "png" : options.format === "image/webp" ? "webp" : "jpg",
     dimensionsReduced:
       outputWidth !== requested.width || outputHeight !== requested.height,
   };
