@@ -2,13 +2,14 @@
 
 import { ChangeEvent, DragEvent, FormEvent, useMemo, useRef, useState } from "react";
 import { processImage, type ImageFit, type ImageFormat } from "@/lib/image-processing";
+import { convertImageToPdf, type PdfPageOption } from "@/lib/pdf-processing";
 
-type ToolMode = "photo" | "signature" | "pdf";
+type ToolMode = "photo" | "signature" | "pdf" | "imageToPdf";
 type Stage = "choose" | "adjust" | "ready";
 
 const TOOL_COPY: Record<
   ToolMode,
-  { label: string; detail: string; title: string; description: string; defaultSize: string }
+  { label: string; detail: string; title: string; description: string; defaultSize: string; fileLabel: string }
 > = {
   photo: {
     label: "Photo",
@@ -16,6 +17,7 @@ const TOOL_COPY: Record<
     title: "Let’s resize your photo.",
     description: "Start by choosing the photo you want to use.",
     defaultSize: "100",
+    fileLabel: "photo",
   },
   signature: {
     label: "Signature",
@@ -23,6 +25,7 @@ const TOOL_COPY: Record<
     title: "Let’s get your signature ready.",
     description: "Choose a clear photo or scan of your signature.",
     defaultSize: "20",
+    fileLabel: "signature",
   },
   pdf: {
     label: "PDF",
@@ -30,6 +33,15 @@ const TOOL_COPY: Record<
     title: "Let’s try a smaller PDF.",
     description: "Choose your PDF. We’ll check if it can be made smaller.",
     defaultSize: "none",
+    fileLabel: "PDF",
+  },
+  imageToPdf: {
+    label: "Image to PDF",
+    detail: "Turn a photo into a PDF",
+    title: "Let’s turn your photo into a PDF.",
+    description: "Choose the photo you want to convert.",
+    defaultSize: "none",
+    fileLabel: "photo",
   },
 };
 
@@ -38,6 +50,7 @@ function Icon({ name, size = 24 }: { name: string; size?: number }) {
     photo: <><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></>,
     signature: <><path d="M3 19c5-2 12-13 8-15-4-2-7 18 0 14 3-2 3-6 2-5-3 2-2 7 2 5l3-2 3 1"/><path d="M3 22h18"/></>,
     pdf: <><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 14h8M8 17h5"/></>,
+    imageToPdf: <><rect x="3" y="4" width="9" height="9" rx="1.5"/><circle cx="6" cy="7" r="1"/><path d="m3.5 12.5 2.5-3 2 2 2-2.5 2 2.5"/><path d="M15 8.5h6M18.5 5.5l3 3-3 3"/><path d="M14 14h7a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1Z"/></>,
     upload: <><path d="M12 16V3m-5 5 5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></>,
     shield: <><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8 12 3 3 5-6"/></>,
     check: <path d="m5 12 4 4L19 6"/>,
@@ -75,6 +88,7 @@ export default function FileFitTool() {
   const [fit, setFit] = useState<ImageFit>("contain");
   const [format, setFormat] = useState<ImageFormat>("image/jpeg");
   const [trimSignature, setTrimSignature] = useState(true);
+  const [pageSize, setPageSize] = useState<PdfPageOption>("a4");
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
@@ -120,6 +134,7 @@ export default function FileFitTool() {
     setTargetSize(TOOL_COPY[nextMode].defaultSize);
     setCustomSize("150");
     setTrimSignature(true);
+    setPageSize("a4");
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -228,6 +243,13 @@ export default function FileFitTool() {
       if (mode === "pdf") {
         const pdf = await processPdf(file);
         ({ blob, title, meta, note, extension } = pdf);
+      } else if (mode === "imageToPdf") {
+        const converted = await convertImageToPdf({ file, pageSize });
+        blob = converted.blob;
+        title = "Your PDF is ready.";
+        meta = `${Math.round(converted.pageWidth)} × ${Math.round(converted.pageHeight)} pt · PDF`;
+        note = "Check the PDF before submitting it.";
+        extension = "pdf";
       } else {
         const image = await processImage({
           file,
@@ -314,9 +336,9 @@ export default function FileFitTool() {
         {stage === "choose" && (
           <div className={`drop-zone ${dragging ? "dragging" : ""}`} onDragEnter={handleDrag} onDragOver={handleDrag} onDragLeave={handleDrag} onDrop={handleDrag}>
             <span className="upload-icon"><Icon name="upload" size={28} /></span>
-            <h3>Choose your {copy.label.toLowerCase()}</h3>
+            <h3>Choose your {copy.fileLabel}</h3>
             <p>or drag and drop it here</p>
-            <button type="button" className="primary-button choose-button" onClick={openPicker} disabled={busy}><Icon name="upload" size={20} />{busy ? "Opening file…" : `Choose ${copy.label.toLowerCase()}`}</button>
+            <button type="button" className="primary-button choose-button" onClick={openPicker} disabled={busy}><Icon name="upload" size={20} />{busy ? "Opening file…" : `Choose ${copy.fileLabel}`}</button>
             <small>{mode === "pdf" ? "PDF files" : "JPG, PNG or WebP"} · Up to 25 MB</small>
           </div>
         )}
@@ -339,6 +361,15 @@ export default function FileFitTool() {
               <form className="settings-form" onSubmit={handleSubmit} onChange={clearResult}>
                 {mode === "pdf" ? (
                   <div className="pdf-message"><h3>Smaller, when possible. Same pages.</h3><p>FileFit will optimise the PDF structure without lowering image quality. Some PDFs are already compact, so their size may stay the same.</p><p>Password-protected PDFs need an unlocked copy first.</p></div>
+                ) : mode === "imageToPdf" ? (
+                  <fieldset className="size-fieldset">
+                    <legend>What size should the PDF page be?</legend>
+                    <p className="field-help">Choose how your photo should sit on the page.</p>
+                    <div className="size-options">
+                      <label><input type="radio" name="pageSize" value="a4" checked={pageSize === "a4"} onChange={() => setPageSize("a4")} /><span>Fit to A4 page</span></label>
+                      <label><input type="radio" name="pageSize" value="match" checked={pageSize === "match"} onChange={() => setPageSize("match")} /><span>Match photo size</span></label>
+                    </div>
+                  </fieldset>
                 ) : (
                   <>
                     <fieldset className="size-fieldset">
@@ -352,22 +383,31 @@ export default function FileFitTool() {
                       {targetSize === "custom" && <label className="custom-size">Maximum size in KB<input type="number" min="1" max="25000" inputMode="numeric" value={customSize} onChange={(event) => setCustomSize(event.target.value)} required /></label>}
                     </fieldset>
 
+                    <fieldset className="size-fieldset">
+                      <legend>Save as which format?</legend>
+                      <p className="field-help">Convert your photo to JPG, PNG or WebP.</p>
+                      <div className="size-options">
+                        <label><input type="radio" name="format" value="image/jpeg" checked={format === "image/jpeg"} onChange={() => setFormat("image/jpeg")} /><span>JPG — smaller file</span></label>
+                        <label><input type="radio" name="format" value="image/png" checked={format === "image/png"} onChange={() => setFormat("image/png")} /><span>PNG — transparent background</span></label>
+                        <label><input type="radio" name="format" value="image/webp" checked={format === "image/webp"} onChange={() => setFormat("image/webp")} /><span>WebP — smaller, keeps transparency</span></label>
+                      </div>
+                    </fieldset>
+
                     {mode === "signature" && <label className="trim-option"><input type="checkbox" checked={trimSignature} onChange={(event) => setTrimSignature(event.target.checked)} />Remove empty white space around my signature</label>}
 
                     <details className="advanced-options">
-                      <summary>Need exact dimensions or a different format?</summary>
+                      <summary>Need exact dimensions?</summary>
                       <div className="advanced-grid">
                         <label>Width (pixels)<input type="number" min="1" max="8000" inputMode="numeric" placeholder="Keep original" value={width} onChange={(event) => setWidth(event.target.value)} /></label>
                         <label>Height (pixels)<input type="number" min="1" max="8000" inputMode="numeric" placeholder="Keep original" value={height} onChange={(event) => setHeight(event.target.value)} /></label>
                         <label>Fit the image<select value={fit} onChange={(event) => setFit(event.target.value as ImageFit)}><option value="contain">Keep the whole image</option><option value="cover">Crop from the centre</option></select></label>
-                        <label>Save as<select value={format} onChange={(event) => setFormat(event.target.value as ImageFormat)}><option value="image/jpeg">JPG — smaller file</option><option value="image/png">PNG — transparent background</option></select></label>
                       </div>
                       <p className="field-help">Leave dimensions blank to keep the proportions. With two dimensions, “Keep the whole image” adds space instead of cutting anything off.</p>
                     </details>
                   </>
                 )}
 
-                <button className="primary-button process-button" type="submit" disabled={busy}>{busy ? "Working on your file…" : mode === "pdf" ? "Make my PDF smaller" : `Make my ${copy.label.toLowerCase()} fit`}<Icon name="arrow" size={20} /></button>
+                <button className="primary-button process-button" type="submit" disabled={busy}>{busy ? "Working on your file…" : mode === "pdf" ? "Make my PDF smaller" : mode === "imageToPdf" ? "Convert to PDF" : `Make my ${copy.label.toLowerCase()} fit`}<Icon name="arrow" size={20} /></button>
               </form>
             )}
           </>
